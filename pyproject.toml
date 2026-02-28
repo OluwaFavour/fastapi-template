@@ -1,0 +1,109 @@
+[project]
+name = "fastapi-template"
+version = "0.1.0"
+description = "FastAPI project template — layered architecture"
+license = "MIT"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+addopts = [
+    "-v",
+    "--strict-markers",
+    "--tb=short",
+    "--cov=app",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--asyncio-mode=auto",
+]
+
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+filterwarnings = [
+    "ignore:coroutine 'Connection._cancel' was never awaited:RuntimeWarning",
+]
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/migrations/*",
+    "*/.venv/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]
+
+# ── Import-linter ─────────────────────────────────────────────────────────
+
+[tool.importlinter]
+root_packages = ["app"]
+
+[[tool.importlinter.contracts]]
+name = "Core must not import from apps"
+type = "forbidden"
+source_modules = ["app.core"]
+forbidden_modules = ["app.apps"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Core must not import from infrastructure"
+type = "forbidden"
+source_modules = ["app.core"]
+forbidden_modules = ["app.infrastructure"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Apps must not import from infrastructure"
+type = "forbidden"
+source_modules = ["app.apps"]
+forbidden_modules = ["app.infrastructure"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Core must not import from admin"
+type = "forbidden"
+source_modules = ["app.core"]
+forbidden_modules = ["app.admin"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Apps must not import from admin"
+type = "forbidden"
+source_modules = ["app.apps"]
+forbidden_modules = ["app.admin"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Infrastructure must not import from admin"
+type = "forbidden"
+source_modules = ["app.infrastructure"]
+forbidden_modules = ["app.admin"]
+allow_indirect_imports = true
+
+[[tool.importlinter.contracts]]
+name = "Admin must not import from infrastructure"
+type = "forbidden"
+source_modules = ["app.admin"]
+forbidden_modules = ["app.infrastructure"]
+allow_indirect_imports = true
