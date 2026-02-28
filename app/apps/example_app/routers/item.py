@@ -38,7 +38,11 @@ async def create_item(
     async with session.begin():
         item = await item_db.create(
             session,
-            data={"title": data.title, "description": data.description, "owner_id": user.id},
+            data={
+                "title": data.title,
+                "description": data.description,
+                "owner_id": user.id,
+            },
             commit_self=False,
         )
     return ItemResponse.model_validate(item)
@@ -116,7 +120,9 @@ async def update_item(
         if not updates:
             return ItemResponse.model_validate(existing)
 
-        updated = await item_db.update(session, id=item_id, updates=updates, commit_self=False)
+        updated = await item_db.update(
+            session, id=item_id, updates=updates, commit_self=False
+        )
 
     if updated is None:
         raise NotFoundException("Item not found.")

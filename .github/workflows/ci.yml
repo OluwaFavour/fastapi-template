@@ -1,101 +1,101 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    lint:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+            - name: Install dependencies
+              run: |
+                  pip install -r requirements.txt
+                  pip install -r requirements-dev.txt
 
-      - name: Format check (black)
-        run: black --check .
+            - name: Format check (black)
+              run: black --check .
 
-      - name: Lint (ruff)
-        run: ruff check .
+            - name: Lint (ruff)
+              run: ruff check .
 
-      - name: Type check (pyright)
-        run: pyright
+            - name: Type check (pyright)
+              run: pyright
 
-      - name: Architecture check (import-linter)
-        run: lint-imports
+            - name: Architecture check (import-linter)
+              run: lint-imports
 
-  test:
-    runs-on: ubuntu-latest
-    needs: lint
+    test:
+        runs-on: ubuntu-latest
+        needs: lint
 
-    services:
-      postgres:
-        image: postgres:16-alpine
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: app_db_test
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+            redis:
+                image: redis:7-alpine
+                ports:
+                    - 6379:6379
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: app_db_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+            ENVIRONMENT: test
+            DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/app_db_test
+            TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/app_db_test
+            REDIS_URL: redis://localhost:6379/0
+            JWT_SECRET_KEY: test-jwt-secret
+            SESSION_SECRET_KEY: test-session-secret
+            OTP_SECRET_KEY: test-otp-secret
+            INTERNAL_API_SECRET: test-internal-secret
+            ADMIN_USERNAME: admin
+            ADMIN_PASSWORD: admin
+            RATE_LIMIT_BACKEND: memory
 
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        steps:
+            - uses: actions/checkout@v4
 
-    env:
-      ENVIRONMENT: test
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/app_db_test
-      TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/app_db_test
-      REDIS_URL: redis://localhost:6379/0
-      JWT_SECRET_KEY: test-jwt-secret
-      SESSION_SECRET_KEY: test-session-secret
-      OTP_SECRET_KEY: test-otp-secret
-      INTERNAL_API_SECRET: test-internal-secret
-      ADMIN_USERNAME: admin
-      ADMIN_PASSWORD: admin
-      RATE_LIMIT_BACKEND: memory
+            - uses: actions/setup-python@v5
+              with:
+                  python-version: "3.12"
 
-    steps:
-      - uses: actions/checkout@v4
+            - name: Install dependencies
+              run: |
+                  pip install -r requirements.txt
+                  pip install -r requirements-dev.txt
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+            - name: Run migrations
+              run: alembic upgrade head
 
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+            - name: Run tests
+              run: pytest --cov=app --cov-report=term-missing
 
-      - name: Run migrations
-        run: alembic upgrade head
-
-      - name: Run tests
-        run: pytest --cov=app --cov-report=term-missing
-
-      - name: Upload coverage
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: htmlcov/
+            - name: Upload coverage
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-report
+                  path: htmlcov/

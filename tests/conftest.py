@@ -134,9 +134,7 @@ def setup_test_database(event_loop_policy):
 
             async with engine.begin() as conn:
                 result = await conn.execute(
-                    text(
-                        "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
-                    )
+                    text("SELECT tablename FROM pg_tables WHERE schemaname = 'public'")
                 )
                 all_tables = [row[0] for row in result.fetchall()]
                 tables = [t for t in all_tables if t not in preserved_tables]
@@ -144,9 +142,7 @@ def setup_test_database(event_loop_policy):
                 if tables:
                     table_list = ", ".join(f'"{t}"' for t in tables)
                     await conn.execute(
-                        text(
-                            f"TRUNCATE TABLE {table_list} RESTART IDENTITY CASCADE"
-                        )
+                        text(f"TRUNCATE TABLE {table_list} RESTART IDENTITY CASCADE")
                     )
                     print(f"[TEST] Truncated {len(tables)} tables")
 

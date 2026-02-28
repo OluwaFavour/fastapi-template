@@ -52,6 +52,7 @@ app/apps/<app_name>/
 ```
 
 After creating a new app:
+
 1. Import its models in `app/main.py`: `import app.apps.<app_name>.db.models  # noqa: F401`
 2. Mount its routers in `app/main.py`: `app.include_router(router, prefix="/api", tags=[...])`
 3. Generate a migration: `python manage.py makemigrations "add <app_name> models"`
@@ -77,6 +78,7 @@ class MyEntity(BaseModel):
 `BaseModel` provides: `id` (UUID pk), `is_deleted`, `deleted_at`, `created_at`, `updated_at`.
 
 Rules:
+
 - One model per file
 - Use `Mapped[]` + `mapped_column()` (SQLAlchemy 2.0 style) — never use `Column()`
 - Always set `__tablename__` explicitly
@@ -107,6 +109,7 @@ my_entity_db = MyEntityDB()
 `BaseDB[T]` provides 20+ methods: `get_by_id`, `get_all` (keyset pagination), `get_by_filters`, `create`, `bulk_create`, `update`, `delete`, `soft_delete`, `upsert`, `get_or_create`, `exists`, etc.
 
 Rules:
+
 - Import the **singleton instance**, not the class: `from app.apps.my_app.db.crud import my_entity_db`
 - Pass `commit_self=False` when inside a `session.begin()` block (let the transaction manager commit)
 - Only use `commit_self=True` (default) for standalone operations
@@ -116,12 +119,14 @@ Rules:
 ## Pydantic Schemas
 
 ```python
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, Field
 from uuid import UUID
 from datetime import datetime
 
 class MyEntityCreate(BaseModel):
-    name: str
+    name: Annotated[str, Field(max_length=255)]
     description: str | None = None
 
 class MyEntityUpdate(BaseModel):
@@ -139,7 +144,9 @@ class MyEntityResponse(BaseModel):
 ```
 
 Rules:
+
 - Always use Pydantic v2 (`model_config = ConfigDict(from_attributes=True)`)
+- Always use `Annotated` types with `Field()` for validation, description, etc. Do not use `...` in `Field`
 - Separate Create, Update, and Response schemas
 - Update schemas have all fields optional
 - Response schemas include `id`, `created_at`, `updated_at`
@@ -149,6 +156,8 @@ Rules:
 ## Routers
 
 ```python
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -170,7 +179,7 @@ router = APIRouter(prefix="/my-entities")
 async def create_entity(
     body: MyEntityCreate,
     user: CurrentActiveUser,
-    session: AsyncSession = Depends(get_async_session),
+    session: Annotated[AsyncSession, Depends(get_async_session)],
 ) -> MyEntityResponse:
     async with session.begin():
         entity = await my_entity_db.create(
@@ -182,6 +191,8 @@ async def create_entity(
 ```
 
 Rules:
+
+- Always use `Annotated` for `Depends()` in endpoint parameters
 - Use `responses=exception_schema` on every endpoint for consistent error docs
 - **Writes**: wrap in `async with session.begin()`, pass `commit_self=False`
 - **Reads**: call CRUD directly, no transaction block needed
@@ -274,6 +285,7 @@ auth_logger.error(f"Login failed: email={email}, error={e}")
 ```
 
 Use f-string interpolation with `key=value` pairs. Pick the correct severity:
+
 - `info` — happy-path milestones
 - `warning` — recoverable issues
 - `error` — failures (always include the exception)

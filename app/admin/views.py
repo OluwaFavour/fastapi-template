@@ -7,7 +7,15 @@ from app.apps.example_app.db.models.item import Item
 
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.email, User.full_name, User.role, User.is_active, User.is_verified, User.created_at]
+    column_list = [
+        User.id,
+        User.email,
+        User.full_name,
+        User.role,
+        User.is_active,
+        User.is_verified,
+        User.created_at,
+    ]
     column_searchable_list = [User.email, User.full_name]
     column_sortable_list = [User.email, User.created_at]
     can_create = False

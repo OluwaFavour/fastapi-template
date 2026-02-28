@@ -9,8 +9,29 @@ import re
 from pathlib import Path
 
 # Files to skip (binary, git, cache, etc.)
-SKIP_DIRS = {".git", "__pycache__", ".venv", "venv", "node_modules", "htmlcov", ".mypy_cache", ".ruff_cache"}
-SKIP_EXTENSIONS = {".pyc", ".pyo", ".ico", ".png", ".jpg", ".jpeg", ".gif", ".woff", ".woff2", ".ttf", ".eot"}
+SKIP_DIRS = {
+    ".git",
+    "__pycache__",
+    ".venv",
+    "venv",
+    "node_modules",
+    "htmlcov",
+    ".mypy_cache",
+    ".ruff_cache",
+}
+SKIP_EXTENSIONS = {
+    ".pyc",
+    ".pyo",
+    ".ico",
+    ".png",
+    ".jpg",
+    ".jpeg",
+    ".gif",
+    ".woff",
+    ".woff2",
+    ".ttf",
+    ".eot",
+}
 
 # Placeholder values used in the template
 PLACEHOLDER_APP_NAME = "FastAPI Template"
@@ -138,7 +159,9 @@ def main():
         if example_dir.exists():
             new_dir = example_dir.parent / example_module
             example_dir.rename(new_dir)
-            print(f"  Renamed: app/apps/{PLACEHOLDER_EXAMPLE_APP} → app/apps/{example_module}")
+            print(
+                f"  Renamed: app/apps/{PLACEHOLDER_EXAMPLE_APP} → app/apps/{example_module}"
+            )
 
     print()
     print(f"Done! Updated {changed_files}/{total_files} files.")
