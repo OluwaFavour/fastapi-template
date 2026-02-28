@@ -4,7 +4,7 @@ A production-ready FastAPI project template with a layered architecture, async S
 
 ## Architecture
 
-```
+```text
 app/
 ├── core/                   # Shared kernel — no domain logic
 │   ├── config.py           # Pydantic Settings (env vars)
@@ -62,7 +62,7 @@ app/
 These are enforced by [import-linter](https://github.com/seddonym/import-linter) contracts in `pyproject.toml`:
 
 | Rule | Description |
-|------|-------------|
+| ---- | ----------- |
 | **Core is independent** | `app.core` never imports from `apps`, `admin`, or `infrastructure` |
 | **Apps depend only on core** | `app.apps.*` imports only from `app.core` |
 | **Admin depends on core + apps** | `app.admin` imports from core and apps, never infrastructure |
@@ -125,12 +125,12 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Visit: http://localhost:8000/docs
+Visit: <http://localhost:8000/docs>
 
 ## CLI Commands (`manage.py`)
 
 | Command | Description |
-|---------|-------------|
+| ------- | ----------- |
 | `runserver` | Start uvicorn (reload in debug, production otherwise) |
 | `makemigrations [comment]` | Generate Alembic migration |
 | `migrate` | Apply migrations to head |
@@ -159,7 +159,7 @@ docker compose --profile api-only up --build
 ### Profiles
 
 | Profile | Services |
-|---------|----------|
+| ------- | -------- |
 | `full` | db + redis + rabbitmq + api + worker + scheduler |
 | `api-only` | db + redis + api |
 | `worker-only` | db + redis + rabbitmq + worker |
@@ -200,7 +200,7 @@ lint-imports
 
 1. Create the folder structure:
 
-```
+```text
 app/apps/my_app/
 ├── __init__.py
 ├── db/
@@ -218,22 +218,22 @@ app/apps/my_app/
     └── my_model.py
 ```
 
-2. Register the model import in `app/main.py`:
+1. Register the model import in `app/main.py`:
 
 ```python
 import app.apps.my_app.db.models  # noqa: F401
 ```
 
-3. Mount the router in `app/main.py`:
+1. Mount the router in `app/main.py`:
 
 ```python
 from app.apps.my_app.routers import my_router
 app.include_router(my_router, prefix="/api", tags=["MyApp"])
 ```
 
-4. Add admin views in `app/admin/views.py` if needed.
+1. Add admin views in `app/admin/views.py` if needed.
 
-5. Generate and run the migration:
+1. Generate and run the migration:
 
 ```bash
 python manage.py makemigrations "add my_app models"
@@ -252,7 +252,7 @@ To add a new external service (e.g., email provider, cloud storage):
 ## Stack
 
 | Component | Technology |
-|-----------|-----------|
+| --------- | --------- |
 | Framework | FastAPI |
 | ORM | SQLAlchemy 2.0 (async) |
 | Database | PostgreSQL + asyncpg |
